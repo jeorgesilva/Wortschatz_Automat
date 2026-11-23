@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Wortschatz-Automat</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div class="starfield"></div>
+
+<div class="cabinet">
+  <div class="cabinet-inner">
+    <div class="lights-row">
+      <span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+    </div>
+
+    <h1>WORTSCHATZ<br>AUTOMAT</h1>
+    <p class="subtitle">Ziehe den Hebel &ndash; bilde einen Satz mit den 4 Woertern!<br>(puxe e escreva uma frase com as 4 palavras sorteadas)</p>
+
+    <div class="screen">
+      <div class="reels" id="reels"></div>
+
+      <div class="controls">
+        <button class="pull-btn" id="pullBtn">ZIEHEN!</button>
+        <div class="combo-box" id="comboBox">
+          <span class="combo-label">DEINE KOMBINATION</span>
+          <span id="comboText">— ziehe den Hebel —</span>
+        </div>
+        <button class="toggle-edit" id="toggleEdit">Listen bearbeiten / editar listas</button>
+      </div>
+    </div>
+
+    <div class="editor" id="editor">
+      <h2>LISTEN BEARBEITEN</h2>
+      <div class="editor-grid" id="editorGrid"></div>
+      <div class="editor-actions">
+        <button class="save-btn" id="saveBtn">SPEICHERN</button>
+        <button class="reset-btn" id="resetBtn">STANDARD</button>
+      </div>
+      <div class="status-msg" id="statusMsg"></div>
+    </div>
+
+    <p class="footer-note">Jede Liste lässt sich frei anpassen &ndash; ein Eintrag pro Zeile.<br>As listas ficam salvas neste navegador.</p>
+  </div>
+</div>
+
+<script src="js/script.js"></script>
+</body>
+</html>
