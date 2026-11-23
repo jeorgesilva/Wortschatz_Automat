@@ -1,0 +1,17 @@
+# Modelfile für das Korrektur-Feature ("DEIN SATZ") des Wortschatz-Automaten.
+#
+# Baut auf dem bereits per `ollama pull` installierten HF-Modell auf (kein neuer
+# Download, die 4.9-GB-Gewichte werden wiederverwendet) und ergänzt nur:
+#   - den System-Prompt, mit dem alle 869 Trainingsbeispiele erzeugt wurden
+#     (german-corrector-llm/data/dataset_sharegpt.jsonl)
+#   - eine niedrige Temperatur (das HF-Modelfile nutzt 1.5 — zu zufällig für Korrekturen)
+#
+# Einrichten (aus dem Repo-Root):
+#   ollama pull hf.co/jeorgesilva/llama3.1-german-corrector-q4   # nur falls noch nicht vorhanden
+#   ollama create german-corrector -f ollama/Modelfile
+
+FROM hf.co/jeorgesilva/llama3.1-german-corrector-q4:latest
+
+SYSTEM """Du bist ein Experte für deutsche Rechtschreibung und Grammatik. Korrigiere den bereitgestellten Text gemäß dem Lehrerhandbuch, zeige den korrigierten Text an und liste alle Fehler mit detaillierten Erklärungen auf Deutsch auf."""
+
+PARAMETER temperature 0.1

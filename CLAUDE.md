@@ -4,13 +4,14 @@ Vokabel-Lernspiel für die Vorbereitung auf das Goethe-Zertifikat C1 (Schreiben)
 
 ## Stack
 
-Reines HTML/CSS/JS, kein Build-Schritt, keine Dependencies, kein Framework. Läuft direkt im Browser (`index.html` öffnen oder `python3 -m http.server`).
+Reines HTML/CSS/JS, kein Build-Schritt, keine Dependencies, kein Framework. Läuft direkt im Browser; für das Korrektur-Feature über einen lokalen Server öffnen (`python3 -m http.server 8765` → `http://localhost:8765`), nicht per `file://`. Port 8000 ist auf dem Rechner des Nutzers von Docker belegt.
 
 ```
-index.html      Markup
-css/style.css   Styling (CSS-Variablen für die Farbpalette, Pixel-Font "Press Start 2P")
-js/script.js    Gesamte Logik, eine IIFE, kein Modul-System
-README.md       Dokumentation für Menschen (Setup, Nutzung, Ideen)
+index.html        Markup
+css/style.css     Styling (CSS-Variablen für die Farbpalette, Pixel-Font "Press Start 2P")
+js/script.js      Gesamte Logik, eine IIFE, kein Modul-System
+ollama/Modelfile  Ollama-Modell "german-corrector" (System-Prompt + temperature fürs Korrektur-Feature)
+README.md         Dokumentation für Menschen (Setup, Nutzung, Ideen)
 ```
 
 ## Walzen-Logik (js/script.js)
@@ -21,13 +22,16 @@ README.md       Dokumentation für Menschen (Setup, Nutzung, Ideen)
 
 ## Korrektur-Feature
 
-Feld `#sentenceInput` → Enter → `correctSentence()` in `js/script.js` → POST an ein lokal laufendes Modell → Ergebnis in `#correctionText` (Box `#correctionBox`).
+Feld `#sentenceInput` → Enter → `correctSentence()` in `js/script.js` → POST an Ollama → `parseCorrection()` → korrigierter Satz in `#correctionText`, Analyse eingeklappt in `#explainText` (Button `#explainToggle` "Erklärung anzeigen"), alles in der Box `#correctionBox`.
 
 - Zielmodell: [jeorgesilva/llama3.1-german-corrector-q4](https://huggingface.co/jeorgesilva/llama3.1-german-corrector-q4) (Llama-3.1-8B, QLoRA, GGUF Q4_K_M).
-- **Aktuelle Annahme** (am Anfang der Datei als Konstanten `CORRECTOR_URL` / `CORRECTOR_MODEL` markiert): Modell läuft lokal über **Ollama**, erzeugt aus dem `Modelfile` im HF-Repo (`ollama create german-corrector -f Modelfile`). Request geht an `http://localhost:11434/api/chat`, Response wird aus `data.message.content` gelesen.
-- Falls stattdessen über llama.cpp (`llama serve`) oder vLLM serviert wird (beide OpenAI-kompatibel unter `/v1/chat/completions`), müssen in `correctSentence()` die URL und das Response-Parsing (`data.choices[0].message.content` statt `data.message.content`) angepasst werden.
-- **CORS-Falle:** Ollama blockiert per Default Browser-Origins. Zum Testen muss `OLLAMA_ORIGINS` gesetzt sein, bevor der Ollama-Server startet (Details in README.md, Abschnitt "Correção automática").
-- Fehlerfälle (Modell nicht erreichbar, leere Antwort) werden abgefangen und zeigen eine Fehlermeldung in `#correctionBox` statt die Seite zu blockieren — beim Weiterbauen diesen Try/Catch-Pfad nicht entfernen.
+- **Serving (Ende-zu-Ende getestet):** Ollama läuft über die macOS-Menüleisten-App, die `ollama serve` auf `127.0.0.1:11434` selbst startet. Das Modell `german-corrector` wird aus `ollama/Modelfile` erzeugt (`ollama create german-corrector -f ollama/Modelfile`). Das Modelfile baut auf dem per `ollama pull hf.co/jeorgesilva/llama3.1-german-corrector-q4` installierten Modell auf und ergänzt nur den System-Prompt aller Trainingsbeispiele (aus `~/german-corrector-llm/data/dataset_sharegpt.jsonl`) + `temperature 0.1`. Die Modelfiles im HF-Repo und in `german-corrector-llm` setzen keinen System-Prompt, und das HF-Modelfile nutzt `temperature 1.5`.
+- Konstanten `CORRECTOR_URL` / `CORRECTOR_MODEL` am Anfang von `js/script.js`. Request an `http://localhost:11434/api/chat` mit `stream: false` und nur einer `user`-Nachricht (der System-Prompt kommt aus dem Modelfile). Response aus `data.message.content`.
+- **Antwortformat** (aus den Trainingsdaten): `KORRIGIERTER TEXT:\n<Satz>\n\nPÄDAGOGISCHE ANALYSE:\n1. Fehler: '…' -> Korrektur: '…'\n   Regel: …\n   Erklärung: …`. `parseCorrection()` trennt an diesen Überschriften; fehlen sie, wird die ganze Antwort als Korrektur gezeigt. Eine Korrektur dauert ca. 5–10 s (+ ~3 s, wenn das Modell erst geladen wird); `correctionRequestId` sorgt dafür, dass nur die Antwort auf die letzte Anfrage angezeigt wird.
+- Falls stattdessen über llama.cpp (`llama serve`) oder vLLM serviert wird (beide OpenAI-kompatibel unter `/v1/chat/completions`), müssen in `correctSentence()` die URL und das Response-Parsing (`data.choices[0].message.content` statt `data.message.content`) angepasst und der System-Prompt als `system`-Nachricht mitgeschickt werden.
+- **CORS:** Ollama erlaubt per Default `http://localhost:*` und `http://127.0.0.1:*`, also ist **kein `OLLAMA_ORIGINS` nötig**, solange die Seite über einen lokalen HTTP-Server läuft. Per `file://` geöffnet (Origin `null`) blockiert Ollama den Preflight (403).
+- Fehlerfälle (Modell nicht erreichbar, Modell fehlt / HTTP 404, Seite per `file://`, leere Antwort) werden abgefangen; `correctionErrorMessage()` zeigt eine passende Meldung in `#correctionBox`, statt die Seite zu blockieren. Beim Weiterbauen diesen Try/Catch-Pfad nicht entfernen.
+- Modell-Output wird nur per `textContent` eingefügt, nie per `innerHTML`.
 
 ## Konventionen
 
