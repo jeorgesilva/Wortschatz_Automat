@@ -3,6 +3,16 @@
 
   var STORAGE_KEY = "wortschatzAutomatLists_v1";
 
+  // --- Korrektur-Modell (jeorgesilva/llama3.1-german-corrector-q4) ---
+  // Default-Annahme: Modell lokal über Ollama servieren, mit dem im HF-Repo
+  // enthaltenen Modelfile erzeugt:
+  //   ollama create german-corrector -f Modelfile
+  //   ollama run german-corrector      (einmal laufen lassen reicht, dann läuft der Server)
+  // Falls du es anders servierst (llama.cpp --jinja / llama serve / vLLM OpenAI-API),
+  // hier URL + Request/Response-Parsing in correctSentence() anpassen (siehe README).
+  var CORRECTOR_URL = "http://localhost:11434/api/chat";
+  var CORRECTOR_MODEL = "german-corrector";
+
   var DEFAULT_LISTS = [
     {
       label: "SUBSTANTIV",
@@ -81,6 +91,9 @@
   var saveBtn = document.getElementById("saveBtn");
   var resetBtn = document.getElementById("resetBtn");
   var statusMsg = document.getElementById("statusMsg");
+  var sentenceInput = document.getElementById("sentenceInput");
+  var correctionBox = document.getElementById("correctionBox");
+  var correctionText = document.getElementById("correctionText");
 
   function pickRandom(arr){
     return arr[Math.floor(Math.random()*arr.length)];
@@ -235,6 +248,51 @@
     statusMsg.textContent = "Auf Standard zurückgesetzt.";
     window.setTimeout(function(){ statusMsg.textContent = ""; }, 1800);
   }
+
+  function setCorrectionState(state, text){
+    correctionBox.classList.remove("loading","error");
+    if(state) correctionBox.classList.add(state);
+    correctionText.textContent = text;
+  }
+
+  function correctSentence(rawText){
+    var text = (rawText || "").trim();
+    if(text.length === 0) return;
+
+    setCorrectionState("loading", "... korrigiere ...");
+
+    fetch(CORRECTOR_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: CORRECTOR_MODEL,
+        messages: [{ role: "user", content: text }],
+        stream: false
+      })
+    })
+      .then(function(res){
+        if(!res.ok) throw new Error("HTTP " + res.status);
+        return res.json();
+      })
+      .then(function(data){
+        var corrected = data && data.message && typeof data.message.content === "string"
+          ? data.message.content.trim()
+          : "";
+        if(!corrected) throw new Error("Leere Antwort vom Modell");
+        setCorrectionState(null, corrected);
+      })
+      .catch(function(err){
+        setCorrectionState("error", "Fehler: Modell nicht erreichbar. Läuft 'ollama run german-corrector'? (siehe README, Abschnitt Korrektur-Feature)");
+        if(window.console && console.error) console.error("Korrektur fehlgeschlagen:", err);
+      });
+  }
+
+  sentenceInput.addEventListener("keydown", function(e){
+    if(e.key === "Enter"){
+      e.preventDefault();
+      correctSentence(sentenceInput.value);
+    }
+  });
 
   pullBtn.addEventListener("click", pullLever);
 

@@ -190,6 +190,59 @@ h1{
 }
 .combo-box .combo-label{ color:#ffe9b3; display:block; margin-bottom:4px; font-size:8px;}
 
+.sentence-box{
+  width:100%;
+  margin-top:6px;
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+}
+
+.sentence-label{
+  font-size:8px;
+  color:var(--accent-cyan);
+  text-align:center;
+}
+.sentence-sub{
+  display:block;
+  font-size:6.5px;
+  color:#b9a9ff;
+  margin-top:3px;
+}
+
+.sentence-input{
+  width:100%;
+  font-family:'Press Start 2P', monospace;
+  font-size:9px;
+  color:var(--text-cream);
+  background:var(--screen);
+  border:3px solid #000;
+  border-radius:6px;
+  padding:10px;
+  outline:none;
+}
+.sentence-input:focus{
+  box-shadow:0 0 0 2px var(--accent-cyan);
+}
+
+.correction-box{
+  width:100%;
+  background:var(--screen);
+  border:3px solid #000;
+  border-radius:6px;
+  padding:10px 12px;
+  text-align:center;
+  font-size:9px;
+  color:var(--accent-green);
+  min-height:40px;
+  line-height:1.8;
+  word-break:break-word;
+}
+.correction-box .correction-label{ color:#ffe9b3; display:block; margin-bottom:4px; font-size:8px;}
+.correction-box.loading #correctionText,
+.correction-box.loading .correction-label{ color:#ffe9b3; animation:blink 1s infinite ease-in-out; }
+.correction-box.error #correctionText{ color:#ff8a8a; }
+
 .toggle-edit{
   background:none;
   border:2px solid var(--text-cream);
