@@ -243,6 +243,32 @@ h1{
 .correction-box.loading .correction-label{ color:#ffe9b3; animation:blink 1s infinite ease-in-out; }
 .correction-box.error #correctionText{ color:#ff8a8a; }
 
+.correction-box .explain-toggle{
+  display:block;
+  margin:10px auto 0;
+  background:none;
+  border:2px solid var(--accent-cyan);
+  color:var(--accent-cyan);
+  font-family:'Press Start 2P', monospace;
+  font-size:7.5px;
+  padding:7px 10px;
+  border-radius:5px;
+  cursor:pointer;
+}
+.correction-box .explain-toggle:hover{ background:rgba(91,227,255,.1); }
+.correction-box .explain-text{
+  margin-top:10px;
+  padding-top:10px;
+  border-top:1px dashed var(--reel-line);
+  text-align:left;
+  white-space:pre-wrap;
+  font-size:7.5px;
+  line-height:1.9;
+  color:var(--text-cream);
+}
+.correction-box .explain-toggle[hidden],
+.correction-box .explain-text[hidden]{ display:none; }
+
 .toggle-edit{
   background:none;
   border:2px solid var(--text-cream);
